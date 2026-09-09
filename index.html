@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="Sipőcz Jázmin GIS és műholdkép-feldolgozási egyéni vállalkozásának bemutatkozó oldala.">
+<title>GISSIP</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@400;600;700;900&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+  :root{
+    --paper:#ECEFE6;
+    --surface:#E1E5D9;
+    --ink:#132019;
+    --ink-soft:#4B564C;
+    --line: rgba(19,32,25,.16);
+    --line-strong: rgba(19,32,25,.30);
+    --veg:#C81952;
+    --water:#12798C;
+    --contour:#9B5F2A;
+    --font-display:'Big Shoulders Display', 'Arial Narrow', sans-serif;
+    --font-body:'Source Serif 4', Georgia, 'Times New Roman', serif;
+    --font-mono:'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#0B120E;
+      --surface:#111C15;
+      --ink:#E7ECE2;
+      --ink-soft:#A9B5A6;
+      --line: rgba(231,236,226,.14);
+      --line-strong: rgba(231,236,226,.28);
+      --veg:#FF5D8C;
+      --water:#4FD3E6;
+      --contour:#D89A63;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#0B120E;
+    --surface:#111C15;
+    --ink:#E7ECE2;
+    --ink-soft:#A9B5A6;
+    --line: rgba(231,236,226,.14);
+    --line-strong: rgba(231,236,226,.28);
+    --veg:#FF5D8C;
+    --water:#4FD3E6;
+    --contour:#D89A63;
+  }
+
+  *{ box-sizing:border-box; }
+  body{
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-body);
+    margin:0;
+    line-height:1.6;
+    background-image:
+      repeating-linear-gradient(to right, var(--line) 0 1px, transparent 1px 88px),
+      repeating-linear-gradient(to bottom, var(--line) 0 1px, transparent 1px 88px);
+  }
+  h1,h2,h3{ font-family: var(--font-display); font-weight:700; text-wrap:balance; margin:0; }
+  a{ color:inherit; }
+  .wrap{ max-width:1040px; margin:0 auto; padding:0 28px; }
+  .eyebrow{
+    font-family:var(--font-mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--ink-soft);
+  }
+
+  /* header */
+  header.site{
+    position:sticky; top:0; z-index:20;
+    backdrop-filter: blur(8px);
+    background: color-mix(in srgb, var(--paper) 82%, transparent);
+    border-bottom:1px solid var(--line);
+  }
+  header.site .bar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px 28px;
+  }
+  .brand{
+    font-family:var(--font-display); font-size:22px; letter-spacing:.02em;
+    display:flex; align-items:baseline; gap:8px;
+  }
+  .brand small{ font-family:var(--font-mono); font-size:11px; color:var(--ink-soft); letter-spacing:.08em; }
+  nav.links{ display:flex; gap:26px; align-items:center; }
+  nav.links a{ text-decoration:none; font-family:var(--font-mono); font-size:13px; letter-spacing:.03em; color:var(--ink-soft); }
+  nav.links a:hover, nav.links a:focus-visible{ color:var(--veg); }
+  nav.links a.cta{
+    color:var(--paper); background:var(--veg); padding:8px 14px; border-radius:2px;
+  }
+  nav.links a.cta:hover{ background: var(--water); }
+  a:focus-visible, button:focus-visible{ outline:2px solid var(--water); outline-offset:3px; }
+
+  .langtoggle{
+    font-family:var(--font-mono); font-size:12px; letter-spacing:.05em;
+    background:transparent; border:1px solid var(--line-strong); color:var(--ink-soft);
+    padding:6px 10px; cursor:pointer; border-radius:2px;
+  }
+  .langtoggle:hover, .langtoggle:focus-visible{ color:var(--veg); border-color:var(--veg); }
+
+  [lang="en"]{ display:none; }
+  :root[data-lang="en"] [lang="hu"]{ display:none; }
+  :root[data-lang="en"] [lang="en"]{ display:revert; }
+
+  /* hero */
+  .hero{ position:relative; overflow:hidden; border-bottom:1px solid var(--line); }
+  .hero canvas{ position:absolute; inset:0; width:100%; height:100%; display:block; }
+  .hero-inner{
+    position:relative; z-index:2;
+    padding: 128px 28px 96px;
+    max-width:1040px; margin:0 auto;
+  }
+  .hero h1{
+    font-size: clamp(56px, 12vw, 132px);
+    line-height:.92; letter-spacing:.01em;
+    color:var(--ink);
+  }
+  .hero p.tagline{
+    font-family:var(--font-body); font-size: clamp(17px, 2.4vw, 21px);
+    max-width:34ch; margin-top:18px; color:var(--ink-soft);
+  }
+  .coords{
+    margin-top:34px; font-family:var(--font-mono); font-size:12px; color:var(--ink-soft);
+    display:flex; gap:18px; flex-wrap:wrap; align-items:center;
+  }
+  .coords .dot{ width:7px; height:7px; border-radius:50%; background:var(--veg); display:inline-block; }
+
+  section{ padding:88px 0; }
+  .section-head{ margin-bottom:44px; max-width:56ch; }
+  .section-head h2{ font-size: clamp(30px,5vw,44px); margin-top:8px; }
+
+  /* legend / services */
+  .legend-grid{
+    display:grid; grid-template-columns: repeat(3, 1fr); gap:1px;
+    background: var(--line); border:1px solid var(--line);
+  }
+  .legend-item{
+    background: var(--surface); padding:30px 26px; display:flex; flex-direction:column; gap:14px;
+  }
+  .legend-key{
+    display:flex; align-items:center; gap:10px;
+  }
+  .legend-key .swatch{
+    width:34px; height:34px; flex:none; border:1px solid var(--line-strong);
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--font-mono); font-size:12px; font-weight:600; color:var(--paper);
+  }
+  .legend-item h3{ font-family:var(--font-display); font-weight:600; font-size:22px; }
+  .legend-item p{ margin:0; color:var(--ink-soft); font-size:15px; }
+
+  .skills-grid{ display:flex; flex-wrap:wrap; gap:10px; }
+  .skill-chip{
+    font-family:var(--font-mono); font-size:13px; letter-spacing:.02em;
+    border:1px solid var(--line-strong); background:var(--surface); color:var(--ink);
+    padding:9px 16px;
+  }
+  .skills-groups{ display:flex; flex-direction:column; }
+  .skills-row{
+    display:grid; grid-template-columns:220px 1fr; gap:20px; align-items:baseline;
+    padding:16px 0; border-bottom:1px solid var(--line);
+  }
+  .skills-row:first-child{ border-top:1px solid var(--line); }
+  .skills-label{
+    font-family:var(--font-mono); font-size:12px; letter-spacing:.05em;
+    text-transform:uppercase; color:var(--ink-soft);
+  }
+  @media (max-width:640px){
+    .skills-row{ grid-template-columns:1fr; gap:8px; }
+  }
+
+  /* about */
+  .about-grid{ display:grid; grid-template-columns: 1.1fr .9fr; gap:56px; align-items:start; }
+  .about-grid p{ max-width:62ch; font-size:17px; }
+  .about-grid p + p{ margin-top:16px; }
+  .field-card{
+    background:var(--surface); border:1px solid var(--line); padding:26px;
+    font-family:var(--font-mono); font-size:13px; color:var(--ink-soft);
+  }
+  .field-card dl{ display:grid; grid-template-columns:auto 1fr; gap:8px 16px; margin:14px 0 0; }
+  .field-card dt{ color:var(--ink-soft); }
+  .field-card dd{ margin:0; color:var(--ink); }
+
+  /* contact */
+  .contact-panel{
+    border:1px solid var(--line-strong); background:var(--surface);
+    padding:48px; display:flex; flex-wrap:wrap; gap:36px; align-items:center; justify-content:space-between;
+  }
+  .contact-panel h2{ font-size: clamp(26px,4vw,36px); max-width:16ch; }
+  .mailbtn{
+    font-family:var(--font-mono); font-size:16px; text-decoration:none;
+    color:var(--paper); background:var(--ink); padding:16px 22px;
+    border:1px solid var(--ink); display:inline-block; letter-spacing:.01em;
+  }
+  .mailbtn:hover{ background:var(--water); border-color:var(--water); color:var(--paper); }
+
+  footer{
+    border-top:1px solid var(--line); padding:26px 0; font-family:var(--font-mono); font-size:12px; color:var(--ink-soft);
+  }
+  footer .wrap{ display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+
+  @media (max-width:760px){
+    .legend-grid{ grid-template-columns:1fr; }
+    .about-grid{ grid-template-columns:1fr; }
+    nav.links a:not(.cta){ display:none; }
+    .hero-inner{ padding:96px 20px 72px; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .hero canvas{ opacity:.9; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="bar">
+    <div class="brand">GISSIP <small><span lang="hu">GEOADAT&nbsp;/&nbsp;TIROL</span><span lang="en">GEODATA&nbsp;/&nbsp;TIROL</span></small></div>
+    <nav class="links">
+      <a href="#szolgaltatasok"><span lang="hu">Szolgáltatások</span><span lang="en">Services</span></a>
+      <a href="#rolam"><span lang="hu">Rólam</span><span lang="en">About</span></a>
+      <button type="button" id="lang-toggle" class="langtoggle" aria-label="Nyelv váltása / Switch language"><span lang="hu">EN</span><span lang="en">HU</span></button>
+      <a href="#kapcsolat" class="cta"><span lang="hu">Kapcsolat</span><span lang="en">Contact</span></a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <canvas id="field"></canvas>
+  <div class="hero-inner">
+    <div class="eyebrow"><span lang="hu">Térinformatika · Műholdkép-feldolgozás · Adatfeldolgozás</span><span lang="en">GIS · Satellite Imagery · Data Processing</span></div>
+    <h1>GISSIP</h1>
+    <p class="tagline"><span lang="hu">Térbeli adatok és műholdfelvételek technikai feldolgozása — pontos bemenet, tiszta kimenet, megrendelői specifikáció szerint.</span><span lang="en">Technical processing of spatial data and satellite imagery — clean input, clean output, to your specification.</span></p>
+    <div class="coords">
+      <span><span class="dot"></span> <span lang="hu">47.26° É, 11.37° K</span><span lang="en">47.26° N, 11.37° E</span></span>
+      <span><span lang="hu">Tirol, Ausztria</span><span lang="en">Tirol, Austria</span></span>
+      <span>gissip.official@gmail.com</span>
+    </div>
+  </div>
+</section>
+
+<section id="szolgaltatasok">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow"><span lang="hu">Jelmagyarázat</span><span lang="en">Legend</span></div>
+      <h2><span lang="hu">Mit csinálok</span><span lang="en">What I do</span></h2>
+    </div>
+    <div class="legend-grid">
+      <div class="legend-item">
+        <div class="legend-key">
+          <span class="swatch" style="background:var(--veg)">GT</span>
+        </div>
+        <h3><span lang="hu">GIS / térinformatikai adatfeldolgozás</span><span lang="en">GIS / spatial data processing</span></h3>
+        <p><span lang="hu">Térbeli adatok rendszerezése, tisztítása és feldolgozása GIS-környezetben, a megrendelő által megadott specifikáció és formátum szerint.</span><span lang="en">Organizing, cleaning, and processing spatial data in a GIS environment, to the format and specification the client provides.</span></p>
+      </div>
+      <div class="legend-item">
+        <div class="legend-key">
+          <span class="swatch" style="background:var(--water)">MK</span>
+        </div>
+        <h3><span lang="hu">Műholdkép-feldolgozás</span><span lang="en">Satellite imagery processing</span></h3>
+        <p><span lang="hu">Optikai és radar műholdfelvételek technikai feldolgozása: indexszámítás (pl. NDVI), időbeli összehasonlítás, mozaikolás.</span><span lang="en">Technical processing of optical and radar satellite imagery: index computation (e.g. NDVI), temporal comparison, mosaicking.</span></p>
+      </div>
+      <div class="legend-item">
+        <div class="legend-key">
+          <span class="swatch" style="background:var(--contour)">AF</span>
+        </div>
+        <h3><span lang="hu">Feldolgozási workflow-k kivitelezése</span><span lang="en">Workflow execution</span></h3>
+        <p><span lang="hu">Megadott módszertan alapján automatizált feldolgozási láncok összeállítása és futtatása, reprodukálható eredménnyel.</span><span lang="en">Building and running automated processing chains from a given methodology, with reproducible results.</span></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="keszsegek">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow"><span lang="hu">Eszköztár</span><span lang="en">Toolkit</span></div>
+      <h2><span lang="hu">Készségek</span><span lang="en">Skills</span></h2>
+    </div>
+    <div class="skills-groups">
+      <div class="skills-row">
+        <span class="skills-label"><span lang="hu">Programozási nyelvek</span><span lang="en">Programming languages</span></span>
+        <div class="skills-grid">
+          <span class="skill-chip">Python</span>
+          <span class="skill-chip">SQL · PostgreSQL</span>
+        </div>
+      </div>
+      <div class="skills-row">
+        <span class="skills-label"><span lang="hu">Fejlesztői környezet</span><span lang="en">Development environment</span></span>
+        <div class="skills-grid">
+          <span class="skill-chip">Visual Studio Code</span>
+        </div>
+      </div>
+      <div class="skills-row">
+        <span class="skills-label"><span lang="hu">GIS szoftverek</span><span lang="en">GIS software</span></span>
+        <div class="skills-grid">
+          <span class="skill-chip">QGIS</span>
+          <span class="skill-chip">ESA SNAP</span>
+        </div>
+      </div>
+      <div class="skills-row">
+        <span class="skills-label"><span lang="hu">Fejlesztői eszközök</span><span lang="en">Developer tools</span></span>
+        <div class="skills-grid">
+          <span class="skill-chip">Git</span>
+          <span class="skill-chip">Docker</span>
+        </div>
+      </div>
+      <div class="skills-row">
+        <span class="skills-label"><span lang="hu">Irodai eszközök</span><span lang="en">Office</span></span>
+        <div class="skills-grid">
+          <span class="skill-chip">Microsoft Office</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="rolam">
+  <div class="wrap about-grid">
+    <div>
+      <div class="section-head" style="margin-bottom:22px;">
+        <div class="eyebrow"><span lang="hu">Háttér</span><span lang="en">Background</span></div>
+        <h2><span lang="hu">Rólam</span><span lang="en">About</span></h2>
+      </div>
+      <p><span lang="hu">Sipőcz Jázmin vagyok, geofizikus végzettséggel, térinformatikai és távérzékelési adatok technikai feldolgozására szakosodva.</span><span lang="en">I'm Jázmin Sipőcz, a geophysicist by training, specializing in the technical processing of geospatial and remote sensing data.</span></p>
+      <p><span lang="hu">A GISSIP Tirolból működő egyéni vállalkozás: a munkát otthoni munkakörnyezetből, saját eszközökkel és szoftverkörnyezettel végzem, mindig a megrendelő által meghatározott feladatra és specifikációra szabva.</span><span lang="en">GISSIP is a sole proprietorship based in Tirol: I work from my own home office, with my own equipment and software environment, always tailored to the task and specification set by the client.</span></p>
+    </div>
+    <div class="field-card">
+      <div class="eyebrow" style="color:var(--ink-soft);"><span lang="hu">Adatlap</span><span lang="en">Fact sheet</span></div>
+      <dl>
+        <dt><span lang="hu">Székhely</span><span lang="en">Location</span></dt><dd><span lang="hu">Tirol, Ausztria</span><span lang="en">Tirol, Austria</span></dd>
+        <dt><span lang="hu">Terület</span><span lang="en">Field</span></dt><dd><span lang="hu">GIS · távérzékelés</span><span lang="en">GIS · remote sensing</span></dd>
+        <dt><span lang="hu">Végzettség</span><span lang="en">Degree</span></dt><dd><span lang="hu">geofizika</span><span lang="en">geophysics</span></dd>
+        <dt><span lang="hu">Munkavégzés</span><span lang="en">Work mode</span></dt><dd><span lang="hu">távmunka</span><span lang="en">remote</span></dd>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<section id="kapcsolat">
+  <div class="wrap">
+    <div class="contact-panel">
+      <h2><span lang="hu">Dolgozzunk együtt. Vedd fel velem a kapcsolatot.</span><span lang="en">Let's work together. Get in touch.</span></h2>
+      <a class="mailbtn" href="mailto:gissip.official@gmail.com">gissip.official@gmail.com</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span>GISSIP · Sipőcz Jázmin</span>
+    <span><span lang="hu">Tirol, Ausztria</span><span lang="en">Tirol, Austria</span></span>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var root = document.documentElement;
+  var btn = document.getElementById('lang-toggle');
+  var stored = null;
+  try { stored = localStorage.getItem('gissip-lang'); } catch(e){}
+  var lang = stored === 'en' ? 'en' : 'hu';
+  root.setAttribute('data-lang', lang);
+  if (btn){
+    btn.addEventListener('click', function(){
+      lang = root.getAttribute('data-lang') === 'en' ? 'hu' : 'en';
+      root.setAttribute('data-lang', lang);
+      try { localStorage.setItem('gissip-lang', lang); } catch(e){}
+    });
+  }
+})();
+(function(){
+  var canvas = document.getElementById('field');
+  var ctx = canvas.getContext('2d');
+  var hero = canvas.closest('.hero');
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var dpr = Math.min(window.devicePixelRatio || 1, 2);
+  var W, H;
+
+  function palette(){
+    var explicit = document.documentElement.getAttribute('data-theme');
+    var dark = explicit === 'dark' || (explicit !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    return dark
+      ? { veg:'#FF5D8C', water:'#4FD3E6', contour:'#D89A63', line:'rgba(231,236,226,.10)', tick:'rgba(231,236,226,.55)' }
+      : { veg:'#C81952', water:'#12798C', contour:'#9B5F2A', line:'rgba(19,32,25,.12)', tick:'rgba(19,32,25,.55)' };
+  }
+
+  function resize(){
+    W = hero.clientWidth; H = hero.clientHeight;
+    canvas.width = W * dpr; canvas.height = H * dpr;
+    canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+
+  function noise(x, seed){
+    return Math.sin(x*0.014 + seed*3.1) * 0.6 + Math.sin(x*0.006 + seed*1.7) * 0.4;
+  }
+
+  function draw(t){
+    var pal = palette();
+    ctx.clearRect(0,0,W,H);
+
+    // graticule
+    ctx.strokeStyle = pal.line;
+    ctx.lineWidth = 1;
+    var step = 64;
+    for (var gx = 0; gx < W; gx += step){
+      ctx.beginPath(); ctx.moveTo(gx,0); ctx.lineTo(gx,H); ctx.stroke();
+    }
+    for (var gy = 0; gy < H; gy += step){
+      ctx.beginPath(); ctx.moveTo(0,gy); ctx.lineTo(W,gy); ctx.stroke();
+    }
+
+    // contour bands
+    var colors = [pal.veg, pal.water, pal.contour];
+    var lines = 10;
+    var drift = reduceMotion ? 0 : t * 0.012;
+    for (var i = 0; i < lines; i++){
+      var baseY = (H / lines) * i + (H / lines) * 0.5;
+      ctx.beginPath();
+      for (var x = 0; x <= W; x += 8){
+        var y = baseY + noise(x + drift * (i%3===0?1:-1) + i*40, i) * 26;
+        if (x === 0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      }
+      ctx.strokeStyle = colors[i % colors.length];
+      ctx.globalAlpha = 0.16;
+      ctx.lineWidth = 1.4;
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+
+    // edge coordinate ticks
+    ctx.fillStyle = pal.tick;
+    ctx.font = '11px "IBM Plex Mono", monospace';
+    for (var tx = 0; tx < W; tx += step*3){
+      ctx.fillText((tx).toString(), tx+4, H-8);
+    }
+  }
+
+  function loop(t){
+    draw(t);
+    if (!reduceMotion) requestAnimationFrame(loop);
+  }
+
+  resize();
+  draw(0);
+  if (!reduceMotion) requestAnimationFrame(loop);
+
+  window.addEventListener('resize', function(){ resize(); draw(0); });
+
+  var mq = window.matchMedia('(prefers-color-scheme: dark)');
+  mq.addEventListener('change', function(){ draw(0); });
+  new MutationObserver(function(){ draw(0); }).observe(document.documentElement, { attributes:true, attributeFilter:['data-theme'] });
+})();
+</script>
+</body>
+</html>
